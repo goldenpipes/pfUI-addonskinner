@@ -10,8 +10,7 @@ Addon provides you with pfUI-themed skins for other addons. It also allowse you 
 You can check some code in `skins` folder to get the idea of how it is done and go on from there with your own skins and ideas.
 Do not forget to add your skins to `pfUI-addonskinner.toc` file.
 
-**Please, keep in mind that I won't skin addons that I personally don't use and therefore won't add them to this repository. Feel free to fork and publish your personal skinns on your own. Thanks for understanding.**
-
+If you want a skin for an addon not shown, fork my repo and make the skin! open a PR and i will add it to this repo!
 
 ## Installation
 **This addon will not function without [pfUI](https://github.com/shagu/pfUI) installed**
