@@ -41,6 +41,7 @@ skins\MouseOverSounds.lua
 skins\MTLove.lua
 skins\Outfitter.lua
 skins\pfQuest.lua
+skins\PizzaSlices.lua
 skins\Possessions.lua
 skins\QuickHeal.lua
 skins\RABuffs.lua
