@@ -69,7 +69,7 @@
   
         CreateConfig(nil, T["Version"] .. ": " .. GetAddOnMetadata("pfUI-addonskinner", "Version"), nil, nil, "header")
         CreateConfig(U["addonskinner"], T["Website"], nil, nil, "button", function()
-          pfUI.chat.urlcopy.CopyText("https://gitlab.com/dein0s_wow_vanilla/pfUI-addonskinner")
+          pfUI.chat.urlcopy.CopyText("https://github.com/jrc13245/pfUI-addonskinner")
         end)
   
       end)
