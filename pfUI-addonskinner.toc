@@ -20,6 +20,7 @@ skins\Atlas.lua
 skins\AtlasLoot.lua
 skins\AtlasQuest.lua
 skins\AutoProfit.lua
+skins\BetterCharacterStats.lua
 skins\BigWigs.lua
 skins\BookStore.lua
 skins\BugSack.lua
@@ -59,6 +60,7 @@ skins\simpleAuras.lua
 skins\SP_Overpower.lua
 skins\SP_SwingTimer.lua
 skins\SpecialTalent.lua
+skins\StatCompare.lua
 skins\SuperIgnore.lua
 skins\SuperInspect_UI.lua
 skins\SuperMacro.lua
