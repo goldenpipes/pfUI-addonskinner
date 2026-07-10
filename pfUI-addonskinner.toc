@@ -75,4 +75,6 @@ skins\TurtleCount.lua
 skins\TurtleZoneCount.lua
 skins\UnitXP_SP3_Addon.lua
 skins\YaHT.lua
+skins\WowRadio-Vanilla.lua
 skins\ZHunterMod.lua
+skins\ZugZug.lua
