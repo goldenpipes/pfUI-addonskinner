@@ -102,7 +102,6 @@ pfUI.addonskinner:RegisterSkin("WowRadio-Vanilla", function()
       local shell = CreateFrame("Frame", nil, f)
       shell:SetAllPoints(f.nowBack)
       CreateBackdrop(shell, nil, nil, .9)
-      shell.backdrop:SetFrameLevel(f.nowBack:GetFrameLevel())
       f.nowBackdrop = shell
     end
 
