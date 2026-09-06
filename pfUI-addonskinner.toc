@@ -42,6 +42,7 @@ skins\LevelRange-Turtle.lua
 skins\LootBlare.lua
 skins\LoseControl.lua
 skins\ManaStones.lua
+skins\MissingCrafts.lua
 skins\ModifiedPowerAuras.lua
 skins\MouseOverSounds.lua
 skins\MTLove.lua
