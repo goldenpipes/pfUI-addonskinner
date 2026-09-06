@@ -63,6 +63,20 @@ pfUI.addonskinner:RegisterSkin("MissingCrafts", function()
         local ddFrame = object._widget.dropdown
         StripTextures(ddFrame)
         SkinDropDown(ddFrame, nil, nil, nil, true)
+
+        -- SkinDropDown stretches the clickable button (and with it, the
+        -- highlight texture) across the whole box. Since highlight is
+        -- Blizzard's topmost render layer, hovering anywhere on the row
+        -- paints right over the label text and the arrow icon. Shrink the
+        -- hit/highlight zone back down to just the arrow on the right,
+        -- like a normal dropdown, so the label stays legible on hover.
+        local button = ddFrame.button
+        if button then
+          button:ClearAllPoints()
+          button:SetPoint("TOPRIGHT", ddFrame.backdrop, "TOPRIGHT", 0, 0)
+          button:SetPoint("BOTTOMRIGHT", ddFrame.backdrop, "BOTTOMRIGHT", 0, 0)
+          button:SetWidth(22)
+        end
       end)
       return object
     end
