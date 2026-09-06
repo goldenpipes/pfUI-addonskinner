@@ -77,6 +77,18 @@ pfUI.addonskinner:RegisterSkin("MissingCrafts", function()
           button:SetPoint("BOTTOMRIGHT", ddFrame.backdrop, "BOTTOMRIGHT", 0, 0)
           button:SetWidth(22)
         end
+
+        -- The popup list itself is a separate "Dropdown-Pullout" AceGUI
+        -- widget that draws its own Blizzard dialog-box border via
+        -- SetBackdrop rather than any template, so it needs its own pass.
+        -- It's created as part of AceGUI:Create("Dropdown") above, so it
+        -- already exists here.
+        local pullout = object._widget.pullout
+        if pullout then
+          local pframe = pullout.frame
+          pframe:SetBackdrop(nil)
+          CreateBackdrop(pframe, nil, nil, .95)
+        end
       end)
       return object
     end
