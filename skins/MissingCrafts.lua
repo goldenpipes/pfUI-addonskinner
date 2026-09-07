@@ -2,9 +2,9 @@ pfUI.addonskinner:RegisterSkin("MissingCrafts", function()
   -- upvalue the pfUI methods we use to avoid repeated lookups
   local penv = pfUI:GetEnvironment()
   local StripTextures, CreateBackdrop, SkinCloseButton, SkinScrollbar,
-    SkinDropDown, SetHighlight =
+    SkinDropDown, SetHighlight, HookScript =
   penv.StripTextures, penv.CreateBackdrop, penv.SkinCloseButton, penv.SkinScrollbar,
-  penv.SkinDropDown, penv.SetHighlight
+  penv.SkinDropDown, penv.SetHighlight, penv.HookScript
 
   --[[
     MissingCrafts builds its whole interface at runtime with AceGUI widgets
@@ -88,6 +88,12 @@ pfUI.addonskinner:RegisterSkin("MissingCrafts", function()
           local pframe = pullout.frame
           pframe:SetBackdrop(nil)
           CreateBackdrop(pframe, nil, nil, .95)
+
+          -- GameTooltip renders at Blizzard's topmost "TOOLTIP" strata,
+          -- above this popup's "FULLSCREEN_DIALOG" strata, so a tooltip
+          -- left over from hovering a crafts-list entry underneath paints
+          -- straight over the open list. Close it whenever the popup shows.
+          HookScript(pframe, "OnShow", function() GameTooltip:Hide() end)
         end
       end)
       return object
