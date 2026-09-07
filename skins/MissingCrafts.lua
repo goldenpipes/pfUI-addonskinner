@@ -76,6 +76,18 @@ pfUI.addonskinner:RegisterSkin("MissingCrafts", function()
         ddFrame.backdrop:SetPoint("TOPLEFT", 15, -1)
         ddFrame.backdrop:SetPoint("BOTTOMRIGHT", -15, 6)
 
+        -- We skin this the instant it's constructed, before it's ever been
+        -- placed into the real widget hierarchy, so ddFrame:GetFrameLevel()
+        -- can still read as an unestablished low value here. CreateBackdrop
+        -- derives the backdrop's level as ddFrame's level minus one, and
+        -- when that starting level is too low the two end up equal (or the
+        -- backdrop even higher), so the backdrop paints over the Text
+        -- region instead of behind it. Pin both explicitly so the stacking
+        -- is correct regardless of what level ddFrame happened to be at.
+        local baseLevel = ddFrame:GetFrameLevel() or 1
+        ddFrame.backdrop:SetFrameLevel(baseLevel)
+        ddFrame:SetFrameLevel(baseLevel + 2)
+
         local button = object._widget.button
         if button then
           button:SetNormalTexture(nil)
@@ -108,6 +120,14 @@ pfUI.addonskinner:RegisterSkin("MissingCrafts", function()
           local _, class = UnitClass("player")
           local classColor = RAID_CLASS_COLORS[class]
           SetHighlight(button, classColor.r, classColor.g, classColor.b)
+
+          -- same early-level issue as ddFrame above: raising ddFrame's
+          -- level just now doesn't retroactively move button (it already
+          -- existed as ddFrame's child), and button's own CreateBackdrop
+          -- call is subject to the same degenerate math. Pin all of it
+          -- explicitly so the arrow icon always ends up on top.
+          button.backdrop:SetFrameLevel(baseLevel + 1)
+          button:SetFrameLevel(baseLevel + 3)
         end
 
         -- The popup list itself is a separate "Dropdown-Pullout" AceGUI
