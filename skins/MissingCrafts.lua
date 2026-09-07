@@ -2,9 +2,9 @@ pfUI.addonskinner:RegisterSkin("MissingCrafts", function()
   -- upvalue the pfUI methods we use to avoid repeated lookups
   local penv = pfUI:GetEnvironment()
   local StripTextures, CreateBackdrop, SkinCloseButton, SkinScrollbar,
-    SkinDropDown, SetHighlight, HookScript =
+    SetHighlight, HookScript, SkinSlider, SetAllPointsOffset =
   penv.StripTextures, penv.CreateBackdrop, penv.SkinCloseButton, penv.SkinScrollbar,
-  penv.SkinDropDown, penv.SetHighlight, penv.HookScript
+  penv.SetHighlight, penv.HookScript, penv.SkinSlider, penv.SetAllPointsOffset
 
   --[[
     MissingCrafts builds its whole interface at runtime with AceGUI widgets
@@ -59,23 +59,55 @@ pfUI.addonskinner:RegisterSkin("MissingCrafts", function()
       local object = origCreate(self, ...)
       pcall(function()
         -- AceGUI's Dropdown widget is a real UIDropDownMenuTemplate frame
-        -- under the hood, so the normal dropdown skinning helper applies
+        -- for its box artwork, BUT its actual popup list is a totally
+        -- custom "Dropdown-Pullout" widget, not Blizzard's native
+        -- DropDownList1/ToggleDropDownMenu system. pfUI's own SkinDropDown
+        -- helper assumes a real Blizzard dropdown and, on every click,
+        -- resizes and repositions DropDownList1 - Blizzard's single global
+        -- shared dropdown list frame used by every native dropdown in the
+        -- whole game - to match this box. Since our box has no real
+        -- relationship to DropDownList1, that just grows an unrelated
+        -- global frame a little more on every click, which is likely both
+        -- the missing text/arrow and the memory crash. So we skin only the
+        -- box's own artwork by hand here and never touch its OnClick.
         local ddFrame = object._widget.dropdown
         StripTextures(ddFrame)
-        SkinDropDown(ddFrame, nil, nil, nil, true)
+        CreateBackdrop(ddFrame, nil, nil, .85)
+        ddFrame.backdrop:SetPoint("TOPLEFT", 15, -1)
+        ddFrame.backdrop:SetPoint("BOTTOMRIGHT", -15, 6)
 
-        -- SkinDropDown stretches the clickable button (and with it, the
-        -- highlight texture) across the whole box. Since highlight is
-        -- Blizzard's topmost render layer, hovering anywhere on the row
-        -- paints right over the label text and the arrow icon. Shrink the
-        -- hit/highlight zone back down to just the arrow on the right,
-        -- like a normal dropdown, so the label stays legible on hover.
-        local button = ddFrame.button
+        local button = object._widget.button
         if button then
+          button:SetNormalTexture(nil)
+          button:SetPushedTexture(nil)
+          button:SetHighlightTexture(nil)
+          button:SetDisabledTexture(nil)
+
+          -- shrink the arrow's own click zone to the right edge only, so
+          -- the label text stays legible and clickable on its own, without
+          -- touching the button's existing OnClick handler at all
           button:ClearAllPoints()
           button:SetPoint("TOPRIGHT", ddFrame.backdrop, "TOPRIGHT", 0, 0)
           button:SetPoint("BOTTOMRIGHT", ddFrame.backdrop, "BOTTOMRIGHT", 0, 0)
           button:SetWidth(22)
+
+          CreateBackdrop(button, nil, nil, .85)
+          button.backdrop:ClearAllPoints()
+          button.backdrop:SetWidth(18)
+          button.backdrop:SetHeight(18)
+          button.backdrop:SetPoint("RIGHT", ddFrame.backdrop, "RIGHT", -2, 0)
+
+          if not button.icon then
+            button.icon = button:CreateTexture(nil, "OVERLAY")
+            button.icon:SetTexture(pfUI.media["img:down"])
+            button.icon:SetVertexColor(1, .9, .1)
+            button.icon:SetAlpha(.8)
+            SetAllPointsOffset(button.icon, button.backdrop, 5)
+          end
+
+          local _, class = UnitClass("player")
+          local classColor = RAID_CLASS_COLORS[class]
+          SetHighlight(button, classColor.r, classColor.g, classColor.b)
         end
 
         -- The popup list itself is a separate "Dropdown-Pullout" AceGUI
@@ -94,6 +126,12 @@ pfUI.addonskinner:RegisterSkin("MissingCrafts", function()
           -- left over from hovering a crafts-list entry underneath paints
           -- straight over the open list. Close it whenever the popup shows.
           HookScript(pframe, "OnShow", function() GameTooltip:Hide() end)
+
+          -- the pullout's own scroll slider is a bare Slider (thumb only,
+          -- no template), so the normal slider skin applies directly
+          if pullout.slider then
+            SkinSlider(pullout.slider)
+          end
         end
       end)
       return object
