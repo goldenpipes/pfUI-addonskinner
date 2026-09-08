@@ -11,6 +11,17 @@ pfUI.addonskinner:RegisterSkin("MissingCrafts", function()
   -- reference the real global directly here instead of via penv.
   local HookScript = HookScript
 
+  -- Temporary diagnostic helper: prints any error a guarded block throws,
+  -- since a plain pcall() swallows it with no trace at all, and errors
+  -- thrown later from inside a deferred OnShow handler happen outside the
+  -- pcall that set the handler up in the first place.
+  local function report(ok, err)
+    if not ok then
+      DEFAULT_CHAT_FRAME:AddMessage("|cffff0000[MissingCrafts skin]|r " .. tostring(err))
+    end
+    return ok
+  end
+
   --[[
     MissingCrafts builds its whole interface at runtime with AceGUI widgets
     (Window/Dropdown/EditBox/ScrollFrame/etc.) instead of static XML frames
@@ -32,7 +43,7 @@ pfUI.addonskinner:RegisterSkin("MissingCrafts", function()
     local origCreate = Window.Create
     Window.Create = function(self, ...)
       local window = origCreate(self, ...)
-      pcall(function()
+      report(pcall(function()
         local aceFrame = window._frame
         local frame = aceFrame.frame
 
@@ -51,7 +62,7 @@ pfUI.addonskinner:RegisterSkin("MissingCrafts", function()
 
         aceFrame.titletext:SetPoint("TOP", frame.backdrop, "TOP", 0, -6)
         SkinCloseButton(window._closeButton, frame.backdrop, -6, -6)
-      end)
+      end))
       return window
     end
   end
@@ -62,7 +73,7 @@ pfUI.addonskinner:RegisterSkin("MissingCrafts", function()
     local origCreate = Dropdown.Create
     Dropdown.Create = function(self, ...)
       local object = origCreate(self, ...)
-      pcall(function()
+      report(pcall(function()
         -- AceGUI's Dropdown widget is a real UIDropDownMenuTemplate frame
         -- for its box artwork, BUT its actual popup list is a totally
         -- custom "Dropdown-Pullout" widget, not Blizzard's native
@@ -94,17 +105,22 @@ pfUI.addonskinner:RegisterSkin("MissingCrafts", function()
         local outerFrame = object._widget.frame
         HookScript(outerFrame, "OnShow", function()
           if ddFrame._pfSkinned then return end
+
+          report(pcall(function()
+            local button = object._widget.button
+            local originalOnClick = button and button:GetScript("OnClick")
+
+            StripTextures(ddFrame)
+            SkinDropDown(ddFrame, nil, nil, nil, true)
+
+            if button and originalOnClick then
+              button:SetScript("OnClick", originalOnClick)
+            end
+          end))
+
+          -- mark as attempted regardless of outcome, so a failure prints
+          -- once instead of spamming the same error on every re-show
           ddFrame._pfSkinned = true
-
-          local button = object._widget.button
-          local originalOnClick = button and button:GetScript("OnClick")
-
-          StripTextures(ddFrame)
-          SkinDropDown(ddFrame, nil, nil, nil, true)
-
-          if button and originalOnClick then
-            button:SetScript("OnClick", originalOnClick)
-          end
         end)
 
         -- The popup list itself is a separate "Dropdown-Pullout" AceGUI
@@ -124,20 +140,23 @@ pfUI.addonskinner:RegisterSkin("MissingCrafts", function()
             GameTooltip:Hide()
 
             if pframe._pfSkinned then return end
+
+            report(pcall(function()
+              pframe:SetBackdrop(nil)
+              CreateBackdrop(pframe, nil, nil, .95)
+
+              -- the pullout's own scroll slider is a bare Slider (thumb
+              -- only, no template), so the normal slider skin applies
+              -- directly
+              if pullout.slider then
+                SkinSlider(pullout.slider)
+              end
+            end))
+
             pframe._pfSkinned = true
-
-            pframe:SetBackdrop(nil)
-            CreateBackdrop(pframe, nil, nil, .95)
-
-            -- the pullout's own scroll slider is a bare Slider (thumb
-            -- only, no template), so the normal slider skin applies
-            -- directly
-            if pullout.slider then
-              SkinSlider(pullout.slider)
-            end
           end)
         end
-      end)
+      end))
       return object
     end
   end
@@ -148,11 +167,11 @@ pfUI.addonskinner:RegisterSkin("MissingCrafts", function()
     local origCreate = SearchField.Create
     SearchField.Create = function(self, ...)
       local object = origCreate(self, ...)
-      pcall(function()
+      report(pcall(function()
         local editbox = object._widget.editbox
         StripTextures(editbox, true, "BACKGROUND")
         CreateBackdrop(editbox, nil, true)
-      end)
+      end))
       return object
     end
   end
@@ -163,11 +182,11 @@ pfUI.addonskinner:RegisterSkin("MissingCrafts", function()
     local origCreate = CraftsList.Create
     CraftsList.Create = function(self, ...)
       local object = origCreate(self, ...)
-      pcall(function()
+      report(pcall(function()
         local scrollWidget = object._scrollFrame
         StripTextures(scrollWidget.scrollframe)
         SkinScrollbar(scrollWidget.scrollbar)
-      end)
+      end))
       return object
     end
   end
@@ -178,7 +197,7 @@ pfUI.addonskinner:RegisterSkin("MissingCrafts", function()
     local origCreate = CraftsListItem.Create
     CraftsListItem.Create = function(self, ...)
       local item = origCreate(self, ...)
-      pcall(function()
+      report(pcall(function()
         local button = item._button
         if not button._pfSkinned then
           SetHighlight(button)
@@ -190,7 +209,7 @@ pfUI.addonskinner:RegisterSkin("MissingCrafts", function()
           end
           button._pfSkinned = true
         end
-      end)
+      end))
       return item
     end
   end
@@ -201,7 +220,7 @@ pfUI.addonskinner:RegisterSkin("MissingCrafts", function()
     local origCreate = OpenButton.Create
     OpenButton.Create = function(self, ...)
       local object = origCreate(self, ...)
-      pcall(function()
+      report(pcall(function()
         local button = object._frame
 
         local icon = button:GetNormalTexture()
@@ -220,7 +239,7 @@ pfUI.addonskinner:RegisterSkin("MissingCrafts", function()
         end
 
         CreateBackdrop(button, nil, nil, .75)
-      end)
+      end))
       return object
     end
   end
