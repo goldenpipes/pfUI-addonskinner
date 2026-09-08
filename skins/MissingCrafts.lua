@@ -2,6 +2,7 @@ pfUI.addonskinner:RegisterSkin("MissingCrafts", function()
   -- upvalue the pfUI methods we use to avoid repeated lookups
   local penv = pfUI:GetEnvironment()
   local StripTextures, CreateBackdrop, SkinCloseButton, SkinScrollbar,
+<<<<<<< HEAD
     SetHighlight, SkinSlider, SkinDropDown =
   penv.StripTextures, penv.CreateBackdrop, penv.SkinCloseButton, penv.SkinScrollbar,
   penv.SetHighlight, penv.SkinSlider, penv.SkinDropDown
@@ -21,6 +22,11 @@ pfUI.addonskinner:RegisterSkin("MissingCrafts", function()
     end
     return ok
   end
+=======
+    SetHighlight, HookScript, SkinSlider, SkinDropDown =
+  penv.StripTextures, penv.CreateBackdrop, penv.SkinCloseButton, penv.SkinScrollbar,
+  penv.SetHighlight, penv.HookScript, penv.SkinSlider, penv.SkinDropDown
+>>>>>>> parent of 631028b (Revert "skins")
 
   --[[
     MissingCrafts builds its whole interface at runtime with AceGUI widgets
@@ -89,6 +95,7 @@ pfUI.addonskinner:RegisterSkin("MissingCrafts", function()
         -- for the visuals, then restore AceGUI's own original click
         -- handler afterward so DropDownList1 is never touched.
         --
+<<<<<<< HEAD
         -- ATSW2's dropdowns are static XML frames, but that distinction
         -- turned out not to matter here: AceGUI's own Dropdown widget
         -- already normalizes frame levels itself (it calls its internal
@@ -118,6 +125,32 @@ pfUI.addonskinner:RegisterSkin("MissingCrafts", function()
           button:SetPoint("BOTTOMRIGHT", ddFrame.backdrop, "BOTTOMRIGHT", 0, 0)
           button:SetWidth(22)
         end
+=======
+        -- ATSW2's dropdowns are static XML frames that are already fully
+        -- realized - parented, laid out, with a legitimate frame level -
+        -- long before RegisterSkin ever runs on them at ADDON_LOADED. Ours
+        -- gets skinned the instant it's constructed, before AceGUI has
+        -- even attached it to its container via AddChild, so its frame
+        -- level isn't meaningful yet. Deferring to the first OnShow (which
+        -- only fires once the widget is actually on screen, fully placed
+        -- in the real hierarchy) puts us in the same position ATSW2 is
+        -- already in, instead of guessing at levels ourselves.
+        local ddFrame = object._widget.dropdown
+        HookScript(ddFrame, "OnShow", function()
+          if ddFrame._pfSkinned then return end
+          ddFrame._pfSkinned = true
+
+          local button = object._widget.button
+          local originalOnClick = button and button:GetScript("OnClick")
+
+          StripTextures(ddFrame)
+          SkinDropDown(ddFrame, nil, nil, nil, true)
+
+          if button and originalOnClick then
+            button:SetScript("OnClick", originalOnClick)
+          end
+        end)
+>>>>>>> parent of 631028b (Revert "skins")
 
         -- The popup list itself is a separate "Dropdown-Pullout" AceGUI
         -- widget that draws its own Blizzard dialog-box border via
@@ -136,6 +169,7 @@ pfUI.addonskinner:RegisterSkin("MissingCrafts", function()
             GameTooltip:Hide()
 
             if pframe._pfSkinned then return end
+<<<<<<< HEAD
 
             report(pcall(function()
               pframe:SetBackdrop(nil)
@@ -150,6 +184,19 @@ pfUI.addonskinner:RegisterSkin("MissingCrafts", function()
             end))
 
             pframe._pfSkinned = true
+=======
+            pframe._pfSkinned = true
+
+            pframe:SetBackdrop(nil)
+            CreateBackdrop(pframe, nil, nil, .95)
+
+            -- the pullout's own scroll slider is a bare Slider (thumb
+            -- only, no template), so the normal slider skin applies
+            -- directly
+            if pullout.slider then
+              SkinSlider(pullout.slider)
+            end
+>>>>>>> parent of 631028b (Revert "skins")
           end)
         end
       end))
