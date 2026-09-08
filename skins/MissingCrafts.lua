@@ -2,9 +2,14 @@ pfUI.addonskinner:RegisterSkin("MissingCrafts", function()
   -- upvalue the pfUI methods we use to avoid repeated lookups
   local penv = pfUI:GetEnvironment()
   local StripTextures, CreateBackdrop, SkinCloseButton, SkinScrollbar,
-    SetHighlight, HookScript, SkinSlider, SkinDropDown =
+    SetHighlight, SkinSlider, SkinDropDown =
   penv.StripTextures, penv.CreateBackdrop, penv.SkinCloseButton, penv.SkinScrollbar,
-  penv.SetHighlight, penv.HookScript, penv.SkinSlider, penv.SkinDropDown
+  penv.SetHighlight, penv.SkinSlider, penv.SkinDropDown
+
+  -- HookScript is a plain global function (not part of pfUI.api / pfUI.env),
+  -- and skin files run in the normal global environment (no setfenv), so we
+  -- reference the real global directly here instead of via penv.
+  local HookScript = HookScript
 
   --[[
     MissingCrafts builds its whole interface at runtime with AceGUI widgets
