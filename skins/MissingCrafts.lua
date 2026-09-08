@@ -89,39 +89,35 @@ pfUI.addonskinner:RegisterSkin("MissingCrafts", function()
         -- for the visuals, then restore AceGUI's own original click
         -- handler afterward so DropDownList1 is never touched.
         --
-        -- ATSW2's dropdowns are static XML frames that are already fully
-        -- realized - parented, laid out, with a legitimate frame level -
-        -- long before RegisterSkin ever runs on them at ADDON_LOADED. Ours
-        -- gets skinned the instant it's constructed, before AceGUI has
-        -- even attached it to its container via AddChild, so its frame
-        -- level isn't meaningful yet. Deferring to an OnShow puts us in
-        -- the same position ATSW2 is already in, instead of guessing at
-        -- levels ourselves - but it has to be the OUTER widget wrapper
-        -- (.frame), not the visible box (.dropdown) itself: AceGUI calls
-        -- :Show() explicitly on the wrapper as part of AddChild/layout,
-        -- but .dropdown is just repositioned, never explicitly shown or
-        -- hidden, so its own OnShow would likely never fire at all.
+        -- ATSW2's dropdowns are static XML frames, but that distinction
+        -- turned out not to matter here: AceGUI's own Dropdown widget
+        -- already normalizes frame levels itself (it calls its internal
+        -- fixlevels() on the pullout immediately in OnAcquire), so there's
+        -- no need to defer anything - skin it the same way ATSW2 does,
+        -- directly and immediately.
         local ddFrame = object._widget.dropdown
-        local outerFrame = object._widget.frame
-        HookScript(outerFrame, "OnShow", function()
-          if ddFrame._pfSkinned then return end
+        local button = object._widget.button
+        local originalOnClick = button and button:GetScript("OnClick")
 
-          report(pcall(function()
-            local button = object._widget.button
-            local originalOnClick = button and button:GetScript("OnClick")
+        StripTextures(ddFrame)
+        SkinDropDown(ddFrame, nil, nil, nil, true)
 
-            StripTextures(ddFrame)
-            SkinDropDown(ddFrame, nil, nil, nil, true)
+        if button and originalOnClick then
+          button:SetScript("OnClick", originalOnClick)
+        end
 
-            if button and originalOnClick then
-              button:SetScript("OnClick", originalOnClick)
-            end
-          end))
-
-          -- mark as attempted regardless of outcome, so a failure prints
-          -- once instead of spamming the same error on every re-show
-          ddFrame._pfSkinned = true
-        end)
+        -- SkinDropDown stretches the clickable button (and with it, its
+        -- highlight texture) across the whole box via SetAllPoints, and
+        -- highlight is Blizzard's topmost render layer - so hovering
+        -- anywhere on the row, not just the arrow, paints right over the
+        -- label text. Shrink the hit/highlight zone back down to just the
+        -- arrow on the right, like a normal dropdown.
+        if button then
+          button:ClearAllPoints()
+          button:SetPoint("TOPRIGHT", ddFrame.backdrop, "TOPRIGHT", 0, 0)
+          button:SetPoint("BOTTOMRIGHT", ddFrame.backdrop, "BOTTOMRIGHT", 0, 0)
+          button:SetWidth(22)
+        end
 
         -- The popup list itself is a separate "Dropdown-Pullout" AceGUI
         -- widget that draws its own Blizzard dialog-box border via
